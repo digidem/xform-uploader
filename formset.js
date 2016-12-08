@@ -2,8 +2,8 @@ var traverse = require('traverse')
 
 function FormSet () {
   this.forms = []
-  this.orphanAttachments = []
-  this.missingAttachments = []
+  this.orphanAttachmentNames = {}
+  this.missingAttachments = {}
 }
 
 FormSet.prototype.addForm = function (formJson) {
@@ -17,31 +17,51 @@ FormSet.prototype.addForm = function (formJson) {
 
   // Filter out orphan attachments that this form references, adding them to
   // the current form.
-  this.orphanAttachments.forEach(function (attachment) {
-    var idx = pendingAttachments.indexOf(attachment.name)
-    if (idx !== -1) {
+  var that = this
+  pendingAttachments = pendingAttachments.filter(function (name) {
+    var attachment = that.orphanAttachmentNames[name]
+    if (attachment) {
       form.attachments.push(attachment)
 
-      // Remove from pendingAttachments and orphanAttachments.
-      pendingAttachments.slice(idx, idx + 1)
-      delete this.orphanAttachments[attachment.name]
+      // Remove from pendingAttachments and orphanAttachmentNames.
+      delete that.orphanAttachmentNames[name]
+      return false
+    } else {
+      return true
     }
   })
 
   // Add all other attachment references to the missing list.
-  this.missingAttachments = this.missingAttachments.concat(pendingAttachments)
+  pendingAttachments.forEach(function (name) {
+    that.missingAttachments[name] = {
+      name: name,
+      form: form
+    }
+  })
+
+  this.forms.push(form)
 
   return form
 }
 
-FormSet.prototype.addAttachment = function (binaryString) {
+FormSet.prototype.addAttachment = function (attachment) {
+  var entry = this.missingAttachments[attachment.name]
+  if (entry) {
+    // Add to the form and remove from the missing attachment set.
+    entry.form.attachments.push(attachment)
+    delete this.missingAttachments[attachment.name]
+  } else {
+    // Otherwise, add to the orphan list.
+    this.orphanAttachmentNames[attachment.name] = attachment
+  }
 }
 
 FormSet.prototype.getMissingAttachments = function () {
-  return this.missingAttachments
+  return Object.keys(this.missingAttachments)
 }
 
 FormSet.prototype.getOrphanAttachments = function () {
+  return Object.keys(this.orphanAttachmentNames)
 }
 
 // Traverse the entire 'form' object, looking for string values that appear to
