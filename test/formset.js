@@ -13,6 +13,8 @@ test('missing attachments', function (t) {
   })
 
   t.deepEqual(set.getMissingAttachments(), ['pic.jpg', 'foo.png'])
+  t.equal(set.getOrphanAttachments().length, 0)
+  t.equal(set.forms.length, 1)
 
   t.end()
 })
@@ -76,3 +78,26 @@ test('full proper form set (attach, form, attach)', function (t) {
 
   t.end()
 })
+
+test('attachment matching', function (t) {
+  var set = new FormSet()
+
+  set.addForm({
+    id: 'foo',
+    things: [
+      'short.mov',
+      'long.3gpp'
+    ],
+    nonAttachment: 'bob.',
+    anotherNonAttachment: '.avi',
+    withSpacesBad: 'I have spaces. New sentence',
+    isAttachment: 'this-maybe_will?match.17pm'
+  })
+
+  t.deepEqual(set.getMissingAttachments(), ['short.mov', 'long.3gpp', 'this-maybe_will?match.17pm'])
+  t.equal(set.getOrphanAttachments().length, 0)
+  t.equal(set.forms.length, 1)
+
+  t.end()
+})
+
