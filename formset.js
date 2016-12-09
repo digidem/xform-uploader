@@ -44,7 +44,16 @@ FormSet.prototype.addForm = function (formJson) {
   return form
 }
 
-FormSet.prototype.addAttachment = function (attachment) {
+FormSet.prototype.addAttachment = function (name, blob) {
+  if (!name || !blob) {
+    throw new Error('must specify name and blob')
+  }
+
+  var attachment = {
+    name: name,
+    blob: blob
+  }
+
   var entry = this.missingAttachments[attachment.name]
   if (entry) {
     // Add to the form and remove from the missing attachment set.

@@ -22,9 +22,8 @@ test('missing attachments', function (t) {
 test('orphaned attachments', function (t) {
   var set = new FormSet()
 
-  set.addAttachment({
-    name: 'foo.png'
-  })
+  var blob = new Buffer('data!')
+  set.addAttachment('foo.png', blob)
 
   var form = {
     id: 'foo',
@@ -43,7 +42,8 @@ test('orphaned attachments', function (t) {
     data: form,
     attachments: [
       {
-        name: 'foo.png'
+        name: 'foo.png',
+        blob: blob
       }
     ]
   })
@@ -54,9 +54,7 @@ test('orphaned attachments', function (t) {
 test('full proper form set (attach, form, attach)', function (t) {
   var set = new FormSet()
 
-  set.addAttachment({
-    name: 'foo.png'
-  })
+  set.addAttachment('foo.png', new Buffer('pics pics pics'))
 
   var form = {
     id: 'foo',
@@ -67,9 +65,7 @@ test('full proper form set (attach, form, attach)', function (t) {
   }
   set.addForm(form)
 
-  set.addAttachment({
-    name: 'pic.jpg'
-  })
+  set.addAttachment('pic.jpg', new Buffer('image image image'))
 
   t.deepEqual(set.getMissingAttachments(), [])
   t.deepEqual(set.getOrphanAttachments(), [])
