@@ -2,7 +2,7 @@ var traverse = require('traverse')
 
 function FormSet () {
   this.forms = []
-  this.orphanAttachmentNames = {}
+  this.orphanAttachments = {}
   this.missingAttachments = {}
 }
 
@@ -19,12 +19,12 @@ FormSet.prototype.addForm = function (formData, pendingAttachments) {
   // the current form.
   var that = this
   pendingAttachments = pendingAttachments.filter(function (name) {
-    var attachment = that.orphanAttachmentNames[name]
+    var attachment = that.orphanAttachments[name]
     if (attachment) {
       form.attachments.push(attachment)
 
-      // Remove from pendingAttachments and orphanAttachmentNames.
-      delete that.orphanAttachmentNames[name]
+      // Remove from pendingAttachments and orphanAttachments.
+      delete that.orphanAttachments[name]
       return false
     } else {
       return true
@@ -61,16 +61,20 @@ FormSet.prototype.addAttachment = function (name, blob) {
     delete this.missingAttachments[attachment.name]
   } else {
     // Otherwise, add to the orphan list.
-    this.orphanAttachmentNames[attachment.name] = attachment
+    this.orphanAttachments[attachment.name] = attachment
   }
 }
 
-FormSet.prototype.getMissingAttachments = function () {
+FormSet.prototype.getMissingAttachmentNames = function () {
   return Object.keys(this.missingAttachments)
 }
 
-FormSet.prototype.getOrphanAttachments = function () {
-  return Object.keys(this.orphanAttachmentNames)
+FormSet.prototype.getOrphanAttachmentNames = function () {
+  return Object.keys(this.orphanAttachments)
+}
+
+FormSet.prototype.getForms = function () {
+  return this.forms
 }
 
 module.exports = FormSet

@@ -15,8 +15,8 @@ test('missing attachments', function (t) {
     'foo.png'
   ])
 
-  t.deepEqual(set.getMissingAttachments(), ['pic.jpg', 'foo.png'])
-  t.equal(set.getOrphanAttachments().length, 0)
+  t.deepEqual(set.getMissingAttachmentNames(), ['pic.jpg', 'foo.png'])
+  t.equal(set.getOrphanAttachmentNames().length, 0)
   t.equal(set.forms.length, 1)
 
   t.end()
@@ -38,8 +38,8 @@ test('orphaned attachments', function (t) {
 
   set.addForm(form, ['pic.jpg', 'foo.png'])
 
-  t.deepEqual(set.getMissingAttachments(), ['pic.jpg'])
-  t.deepEqual(set.getOrphanAttachments(), [])
+  t.deepEqual(set.getMissingAttachmentNames(), ['pic.jpg'])
+  t.deepEqual(set.getOrphanAttachmentNames(), [])
   t.equal(set.forms.length, 1)
   t.deepEqual(set.forms[0], {
     data: form,
@@ -70,8 +70,8 @@ test('full proper form set (attach, form, attach)', function (t) {
 
   set.addAttachment('pic.jpg', new Buffer('image image image'))
 
-  t.deepEqual(set.getMissingAttachments(), [])
-  t.deepEqual(set.getOrphanAttachments(), [])
+  t.deepEqual(set.getMissingAttachmentNames(), [])
+  t.deepEqual(set.getOrphanAttachmentNames(), [])
   t.equal(set.forms.length, 1)
   t.equal(set.forms[0].attachments.length, 2)
 
@@ -95,8 +95,8 @@ test('full proper form set (attach, form, attach)', function (t) {
 //   }
 //   set.addForm(form, form.things)
 
-//   t.deepEqual(set.getMissingAttachments(), ['short.mov', 'long.3gpp', 'this-maybe_will?match.17pm'])
-//   t.equal(set.getOrphanAttachments().length, 0)
+//   t.deepEqual(set.getMissingAttachmentNames(), ['short.mov', 'long.3gpp', 'this-maybe_will?match.17pm'])
+//   t.equal(set.getOrphanAttachmentNames().length, 0)
 //   t.equal(set.forms.length, 1)
 
 //   t.end()
