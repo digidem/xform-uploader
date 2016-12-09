@@ -1,5 +1,3 @@
-var traverse = require('traverse')
-
 function FormSet () {
   this.forms = []
   this.orphanAttachments = {}
