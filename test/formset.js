@@ -10,7 +10,10 @@ test('missing attachments', function (t) {
       'pic.jpg',
       'foo.png'
     ]
-  })
+  }, [
+    'pic.jpg',
+    'foo.png'
+  ])
 
   t.deepEqual(set.getMissingAttachments(), ['pic.jpg', 'foo.png'])
   t.equal(set.getOrphanAttachments().length, 0)
@@ -33,7 +36,7 @@ test('orphaned attachments', function (t) {
     ]
   }
 
-  set.addForm(form)
+  set.addForm(form, ['pic.jpg', 'foo.png'])
 
   t.deepEqual(set.getMissingAttachments(), ['pic.jpg'])
   t.deepEqual(set.getOrphanAttachments(), [])
@@ -63,7 +66,7 @@ test('full proper form set (attach, form, attach)', function (t) {
       'foo.png'
     ]
   }
-  set.addForm(form)
+  set.addForm(form, form.media)
 
   set.addAttachment('pic.jpg', new Buffer('image image image'))
 
@@ -75,25 +78,26 @@ test('full proper form set (attach, form, attach)', function (t) {
   t.end()
 })
 
-test('attachment matching', function (t) {
-  var set = new FormSet()
+// TODO(sww): add this to index.js, not FormSet
+// test('attachment matching', function (t) {
+//   var set = new FormSet()
 
-  set.addForm({
-    id: 'foo',
-    things: [
-      'short.mov',
-      'long.3gpp'
-    ],
-    nonAttachment: 'bob.',
-    anotherNonAttachment: '.avi',
-    withSpacesBad: 'I have spaces. New sentence',
-    isAttachment: 'this-maybe_will?match.17pm'
-  })
+//   var form = {
+//     id: 'foo',
+//     things: [
+//       'short.mov',
+//       'long.3gpp',
+//       'bob.',
+//       '.avi',
+//       'I have spaces.New sentence',
+//       'this-maybe_will?match.17pm'
+//     ]
+//   }
+//   set.addForm(form, form.things)
 
-  t.deepEqual(set.getMissingAttachments(), ['short.mov', 'long.3gpp', 'this-maybe_will?match.17pm'])
-  t.equal(set.getOrphanAttachments().length, 0)
-  t.equal(set.forms.length, 1)
+//   t.deepEqual(set.getMissingAttachments(), ['short.mov', 'long.3gpp', 'this-maybe_will?match.17pm'])
+//   t.equal(set.getOrphanAttachments().length, 0)
+//   t.equal(set.forms.length, 1)
 
-  t.end()
-})
-
+//   t.end()
+// })

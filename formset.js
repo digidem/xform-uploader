@@ -6,14 +6,14 @@ function FormSet () {
   this.missingAttachments = {}
 }
 
-FormSet.prototype.addForm = function (formJson) {
+// Add an opaque form and attachment names.
+FormSet.prototype.addForm = function (formData, pendingAttachments) {
+  pendingAttachments = pendingAttachments || []
+
   var form = {
-    data: formJson,
+    data: formData,
     attachments: []
   }
-
-  // Find all references to attachments.
-  var pendingAttachments = getAttachmentNamesFromForm(formJson)
 
   // Filter out orphan attachments that this form references, adding them to
   // the current form.
@@ -71,20 +71,6 @@ FormSet.prototype.getMissingAttachments = function () {
 
 FormSet.prototype.getOrphanAttachments = function () {
   return Object.keys(this.orphanAttachmentNames)
-}
-
-// Traverse the entire 'form' object, looking for string values that appear to
-// end in a known file extension.
-function getAttachmentNamesFromForm (form) {
-  var fileRegex = /^.+\.\w+$/
-
-  var result = []
-  traverse(form).forEach(function (entry) {
-    if (typeof entry === 'string' && fileRegex.test(entry)) {
-      result.push(entry)
-    }
-  })
-  return result
 }
 
 module.exports = FormSet
