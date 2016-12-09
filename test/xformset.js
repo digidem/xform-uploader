@@ -31,13 +31,6 @@ test('orphaned attachments', function (t) {
   var blob = new Buffer('data!')
   set.addAttachment('foo.png', blob)
 
-  var form = {
-    id: 'foo',
-    media: [
-      'pic.jpg',
-      'foo.png'
-    ]
-  }
   var xml = `
     <form id="foo">
       <media>
