@@ -14,7 +14,7 @@ function XFormUploader () {
 util.inherits(XFormUploader, events.EventEmitter)
 
 XFormUploader.prototype.add = function (file, done) {
-  var reader = new FileReader()
+  var reader = new window.FileReader()
   if (file.name.endsWith('.xml')) {
     // XML form
     var xml = reader.readAsText(file)
