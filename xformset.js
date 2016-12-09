@@ -11,24 +11,27 @@ function XFormSet () {
 util.inherits(XFormSet, events.EventEmitter)
 
 XFormSet.prototype.addForm = function (xml, done) {
+  done = done || function () {}
+  var self = this
   xformToJson(xml, function (err, json) {
     if (err) return done(err)
     var attachmentNames = getAttachmentNamesFromForm(json)
-    this.forms.addForm(json, attachmentNames)
+    self.forms.addForm(json, attachmentNames)
     done()
   })
 }
 
 XFormSet.prototype.addAttachment = function (name, blob, done) {
+  done = done || function () {}
   this.forms.addAttachment(name, blob)
   process.nextTick(done)
 }
 
 XFormSet.prototype.state = function () {
   return {
-    forms: this.getForms(),
-    missingAttachments: this.getMissingAttachmentNames(),
-    orphanAttachments: this.getOrphanAttachmentNames()
+    forms: this.forms.getForms(),
+    missingAttachments: this.forms.getMissingAttachmentNames(),
+    orphanAttachments: this.forms.getOrphanAttachmentNames()
   }
 }
 
@@ -45,3 +48,5 @@ function getAttachmentNamesFromForm (form) {
   })
   return result
 }
+
+module.exports = XFormSet
