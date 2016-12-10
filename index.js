@@ -4,9 +4,11 @@ var XFormSet = require('./xformset')
 var after = require('after-all')
 var got = require('got')
 var parallel = require('run-parallel')
+var clone = require('clone')
 
 function XFormUploader () {
   this.forms = new XFormSet()
+  this.attachments = {}
 }
 
 util.inherits(XFormUploader, events.EventEmitter)
@@ -46,11 +48,30 @@ XFormUploader.prototype.add = function (files, done) {
 }
 
 XFormUploader.prototype.state = function () {
-  // TODO(sww): transform this object /w relevant upload data
-  return this.forms.state()
+  // Transform state by adding relevant upload/etc data.
+  var state = clone(this.forms.state())
+
+  var self = this
+  state.forms.forEach(function (form) {
+    form.attachments.forEach(function (attachment) {
+      var data = self.attachments[attachment.name]
+      if (!data) {
+        // Default values to add
+        data = {
+          uploaded: 0,
+          mediaId: null
+        }
+      }
+      Object.assign(attachment, data)
+    })
+  })
+
+  return state
 }
 
-XFormUploader.prototype.upload = function (servers) {
+XFormUploader.prototype.upload = function (servers, done) {
+  var self = this
+
   if (servers.media) {
     // Deduce all attachments from state
     // TODO(sww): skip attachments that are already uploaded/uploading
@@ -66,9 +87,21 @@ XFormUploader.prototype.upload = function (servers) {
     })
 
     // Upload all attachments
+    // TODO(sww): Handle partial failures!
     parallel(tasks, function (err, ids) {
       console.log('upload', err, ids)
-      // TODO(sww): update uploaded state of attachments
+
+      if (err) return done(err)
+
+      // Update uploaded state of attachments
+      attachments.forEach(function (attachment, idx) {
+        set(self.attachments, attachment.name, 'uploaded', 1)
+
+        var mediaId = ids[idx]
+        set(self.attachments, attachment.name, 'mediaId', mediaId)
+      })
+      self.emit('change')
+      done(null)
     })
   }
 }
@@ -86,6 +119,13 @@ function uploadMediaBlob (httpEndpoint, blob, done) {
   })
 
   promise.catch(done)
+}
+
+function set (obj, prop, key, value) {
+  if (!obj[prop]) {
+    obj[prop] = {}
+  }
+  obj[prop][key] = value
 }
 
 module.exports = XFormUploader
