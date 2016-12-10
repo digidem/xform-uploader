@@ -70,3 +70,5 @@ function uploadMediaBlob (httpEndpoint, blob, done) {
 
   promise.catch(done)
 }
+
+module.exports = XFormUploader
