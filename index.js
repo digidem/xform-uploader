@@ -2,6 +2,7 @@ var events = require('events')
 var util = require('util')
 var XFormSet = require('./xformset')
 var after = require('after-all')
+var got = require('got')
 
 function XFormUploader () {
   this.forms = new XFormSet()
@@ -48,5 +49,23 @@ XFormUploader.prototype.state = function () {
 }
 
 XFormUploader.prototype.upload = function (servers) {
+  if (servers.media) {
+    // TODO(sww): upload all attachments
+    // uploadMediaBlob(servers.media, blob, function (err, id) {
+    //   ...
+    // })
+  }
 }
 
+function uploadMediaBlob (httpEndpoint, blob, done) {
+  var promise = got(httpEndpoint, {
+    body: blob
+  })
+
+  promise.then(function () {
+    // TODO(sww): capture and report the media id
+    done(null, 'an_id')
+  })
+
+  promise.catch(done)
+}
