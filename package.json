@@ -1,13 +1,13 @@
 {
-  "name": "xforms-uploader",
+  "name": "xform-uploader",
   "description": "Parse an xform and attachments and upload to an odk-aggregate server or osm-p2p + hyperdrive.",
   "author": "Stephen Whitmore <sww@eight45.net>",
   "version": "0.0.0",
   "repository": {
-    "url": "git://github.com/noffle/xforms-uploader.git"
+    "url": "git://github.com/noffle/xform-uploader.git"
   },
-  "homepage": "https://github.com/noffle/xforms-uploader",
-  "bugs": "https://github.com/noffle/xforms-uploader/issues",
+  "homepage": "https://github.com/noffle/xform-uploader",
+  "bugs": "https://github.com/noffle/xform-uploader/issues",
   "main": "index.js",
   "scripts": {
     "test": "tape test/*.js",
