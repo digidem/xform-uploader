@@ -4,11 +4,6 @@ var XFormSet = require('./xformset')
 
 function XFormUploader () {
   this.forms = new XFormSet()
-
-  var self = this
-  this.forms.on('change', function () {
-    self.emit('change')
-  })
 }
 
 util.inherits(XFormUploader, events.EventEmitter)

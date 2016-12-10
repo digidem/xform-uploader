@@ -1,5 +1,3 @@
-var events = require('events')
-var util = require('util')
 var xformToJson = require('xform-to-json')
 var FormSet = require('./formset')
 var traverse = require('traverse')
@@ -7,8 +5,6 @@ var traverse = require('traverse')
 function XFormSet () {
   this.forms = new FormSet()
 }
-
-util.inherits(XFormSet, events.EventEmitter)
 
 XFormSet.prototype.addForm = function (xml, done) {
   done = done || function () {}
