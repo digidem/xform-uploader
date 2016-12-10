@@ -31,6 +31,9 @@ test('orphaned attachments', function (t) {
   var blob = new Buffer('data!')
   set.addAttachment('foo.png', blob)
 
+  var blob2 = new Buffer('blobby')
+  set.addAttachment('pipeline.mov', blob2)
+
   var xml = `
     <form id="foo">
       <media>
@@ -46,13 +49,13 @@ test('orphaned attachments', function (t) {
     var state = set.state()
     t.deepEqual(state.missingAttachments, ['pic.jpg'])
     t.same(state.forms.length, 1)
-    t.same(state.orphanAttachments.length, 0)
+    t.deepEqual(state.orphanAttachments, ['pipeline.mov'])
 
     t.end()
   }
 })
 
-test('attachment matching', function (t) {
+test('attachment name matching', function (t) {
   var set = new XFormSet()
 
   var form = `
