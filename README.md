@@ -66,13 +66,32 @@ uploader.upload({
 
 ## API
 
+```js
+var Uploader = require('xform-uploader')
+var uploader = new Uploader()
+```
+
+### uploader.add(files, done)
+
+...
+
+### uploader.state()
+
+...
+
+### uploader.on('change', function () { ... })
+
+...
+
+### uploader.upload(servers, done)
+
 ...
 
 ## Inner Modules
 
 This module contains two inner modules: `FormSet` and `XFormSet`, which are more
-general purpose and may useful outside of the context of this wrapping module,
-which is just a small bit of glue.
+general purpose and may useful outside of the context of the outer module,
+which is just a small amount of glue code.
 
 # License
 
