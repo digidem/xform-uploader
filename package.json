@@ -21,6 +21,7 @@
   "dependencies": {
     "after-all": "^2.0.2",
     "got": "^6.6.3",
+    "run-parallel": "^1.1.6",
     "traverse": "^0.6.6",
     "xform-to-json": "^1.2.0"
   },

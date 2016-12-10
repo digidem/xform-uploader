@@ -3,6 +3,7 @@ var util = require('util')
 var XFormSet = require('./xformset')
 var after = require('after-all')
 var got = require('got')
+var parallel = require('run-parallel')
 
 function XFormUploader () {
   this.forms = new XFormSet()
@@ -51,21 +52,37 @@ XFormUploader.prototype.state = function () {
 
 XFormUploader.prototype.upload = function (servers) {
   if (servers.media) {
-    // TODO(sww): upload all attachments
-    // uploadMediaBlob(servers.media, blob, function (err, id) {
-    //   ...
-    // })
+    // Deduce all attachments from state
+    // TODO(sww): skip attachments that are already uploaded/uploading
+    var attachments = this.state().forms.reduce(function (accum, form) {
+      return accum.concat(form.attachments)
+    }, [])
+
+    // Build upload tasks
+    var tasks = attachments.map(function (attachment) {
+      return function (done) {
+        uploadMediaBlob(servers.media, attachment.blob, done)
+      }
+    })
+
+    // Upload all attachments
+    parallel(tasks, function (err, ids) {
+      console.log('upload', err, ids)
+      // TODO(sww): update uploaded state of attachments
+    })
   }
 }
 
 function uploadMediaBlob (httpEndpoint, blob, done) {
+  console.log('uploading')
+
   var promise = got(httpEndpoint, {
-    body: blob
+    body: blob,
+    retries: 0
   })
 
-  promise.then(function () {
-    // TODO(sww): capture and report the media id
-    done(null, 'an_id')
+  promise.then(function (res) {
+    done(null, res.body)
   })
 
   promise.catch(done)
