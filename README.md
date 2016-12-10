@@ -8,14 +8,16 @@
 ```js
 var uploader = new Uploader()
 
-uploader.add(xmlFile1)
-  .add(attachment1)
-  .add(attachment2)
-  .add(xmlFile2)
-  .add(attachment4)
-  .add(attachment5)
-
-console.log(uploader.state())
+uploader.add([
+  xmlFile1,
+  attachment1,
+  attachment2,
+  xmlFile2,
+  attachment4,
+  attachment5
+], function (err) {
+  console.log(uploader.state())
+})
 
 // output:
 {
@@ -25,20 +27,20 @@ console.log(uploader.state())
       uploaded: 0 // 0-1 progress uploaded, 1 === upload complete
       attachments: [
         {
-            filename: 'originalFilename.jpg',
-            id: '1231421531', // not set on attachments until after upload
-            blob: attachment1,
-            uploaded: 1
+          filename: 'originalFilename.jpg',
+          id: '1231421531', // not set on attachments until after upload
+          blob: attachment1,
+          uploaded: 1
         }, {
-            filename: 'originalFilename2.jpg',
-            id: null,
-            blob: attachment2,
-            uploaded: 0
+          filename: 'originalFilename2.jpg',
+          id: null,
+          blob: attachment2,
+          uploaded: 0
         }, {
-            filename: 'originalFilename3.jpg',
-            id: null,
-            blob: null, // we haven't attached the file yet, but we know there should be one from parsing the form XML
-            uploaded: 0
+          filename: 'originalFilename3.jpg',
+          id: null,
+          blob: null, // we haven't attached the file yet, but we know there should be one from parsing the form XML
+          uploaded: 0
         }
       ]
     }
@@ -53,6 +55,7 @@ console.log(uploader.state())
   ]
 }
 
+// fires every time the internal state changes
 uploader.on('change', function () { console.log(uploader.state()) })
 
 uploader.upload({

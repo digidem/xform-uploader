@@ -19,6 +19,7 @@
     "test"
   ],
   "dependencies": {
+    "after-all": "^2.0.2",
     "traverse": "^0.6.6",
     "xform-to-json": "^1.2.0"
   },
