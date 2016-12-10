@@ -1,13 +1,13 @@
 {
-  "name": "xforms-to-p2p-geojson",
-  "description": "convert a set of xforms and attachments to osm-p2p-db friendly geojson",
-  "author": "Stephen Whitmore <stephen.whitmore@gmail.com>",
+  "name": "xforms-uploader",
+  "description": "Parse an xform and attachments and upload to an odk-aggregate server or osm-p2p + hyperdrive.",
+  "author": "Stephen Whitmore <sww@eight45.net>",
   "version": "0.0.0",
   "repository": {
-    "url": "git://github.com/noffle/xforms-to-p2p-geojson.git"
+    "url": "git://github.com/noffle/xforms-uploader.git"
   },
-  "homepage": "https://github.com/noffle/xforms-to-p2p-geojson",
-  "bugs": "https://github.com/noffle/xforms-to-p2p-geojson/issues",
+  "homepage": "https://github.com/noffle/xforms-uploader",
+  "bugs": "https://github.com/noffle/xforms-uploader/issues",
   "main": "index.js",
   "scripts": {
     "test": "tape test/*.js",
