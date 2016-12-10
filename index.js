@@ -15,6 +15,8 @@ XFormUploader.prototype.add = function (files, done) {
     files = [files]
   }
 
+  var self = this
+
   var next = after(function (err) {
     finished(err)
   })
@@ -25,17 +27,16 @@ XFormUploader.prototype.add = function (files, done) {
     if (file.name.endsWith('.xml')) {
       // XML form
       var xml = reader.readAsText(file)
-      this.forms.addForm(xml, cb)
+      self.forms.addForm(xml, cb)
     } else {
       // Attachment
       var blob = reader.readAsBinaryString(file)
-      this.forms.addAttachment(file.name, blob, cb)
+      self.forms.addAttachment(file.name, blob, cb)
     }
   }
 
   files.forEach(add)
 
-  var self = this
   function finished (err) {
     if (err) return done(err)
     self.emit('change')
