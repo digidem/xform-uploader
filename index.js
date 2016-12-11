@@ -78,24 +78,38 @@ XFormUploader.prototype.upload = function (servers, done) {
     done(err)
   })
 
-  var uploadFn = null
+  var mediaUploadFn = null
+  var observationsUploadFn = null
 
   // Upload via HTTP POST
   if (servers.mediaUrl) {
-    uploadFn = function (blob, fin) {
+    mediaUploadFn = function (blob, fin) {
       uploadBlobHttp(servers.mediaUrl, blob, fin)
     }
   }
 
-  // If an uploadFn was given, upload all attachments.
-  if (uploadFn) {
+  // If an mediaUploadFn was given, upload all attachments.
+  if (mediaUploadFn) {
     // Perform the upload
-    this.uploadAttachments(uploadFn, next())
+    this.uploadAttachments(mediaUploadFn, next())
   }
 
-  // if (servers.observationsUrl) {
-  //   this.uploadObservations(servers.observationsUrl, next())
-  // }
+  if (servers.observationsUrl) {
+    observationsUploadFn = function (form, fin) {
+      uploadBlobHttp(servers.observationsUrl, form, function (err, res) {
+        if (res) {
+          res = res.trim()
+        }
+        fin(err, res)
+      })
+    }
+  }
+
+  // If an mediaUploadFn was given, upload all attachments.
+  if (observationsUploadFn) {
+    // Perform the upload
+    this.uploadForms(observationsUploadFn, next())
+  }
 }
 
 XFormUploader.prototype.uploadAttachments = function (uploadFn, done) {
@@ -125,6 +139,51 @@ XFormUploader.prototype.uploadAttachments = function (uploadFn, done) {
   })
 }
 
+XFormUploader.prototype.uploadForms = function (uploadFn, done) {
+  // Avoids copying attachments
+  function cloneForm (form) {
+    var attachments = form.attachments
+    form.attachments = undefined
+
+    var copy = clone(form)
+
+    form.attachments = attachments
+
+    return copy
+  }
+
+  // Transform forms to refer to mediaIds rather than JS references.
+  var forms = this.forms.getForms().map(function (form) {
+    var copy = cloneForm(form)
+    copy.attachments = form.attachments.map(function (attachment) {
+      return attachment.mediaId
+    })
+    return copy
+  })
+
+  // Transform forms into osm observation json blobs.
+  var observations = forms
+    .map(function (form) {
+      return {
+        type: 'observation',
+        comment: form
+      }
+    })
+    .map(JSON.stringify)
+
+  // console.log('obs', observations)
+
+  var self = this
+  uploadBlobs(observations, uploadFn, function (err, ids) {
+    if (err) return done(err)
+
+    // TODO(sww): Update uploaded state of forms.
+    console.log('all done', ids)
+
+    done(null)
+  })
+}
+
 // Takes a list of blobs and an async upload function, performs the upload
 // process on the blobs, and returns the values returned by the uploading
 // mechanism.
@@ -145,7 +204,10 @@ function uploadBlobs (blobs, uploadFn, done) {
 function uploadBlobHttp (httpEndpoint, blob, done) {
   var promise = got(httpEndpoint, {
     body: blob,
-    retries: 0
+    retries: 0,
+    headers: {
+      'Content-Type': 'application/json'
+    }
   })
 
   promise.then(function (res) {
