@@ -70,45 +70,79 @@ XFormUploader.prototype.state = function () {
 }
 
 XFormUploader.prototype.upload = function (servers, done) {
+  done = done || function () {}
+
   var self = this
+  var next = after(function (err) {
+    self.emit('change')
+    done(err)
+  })
 
-  if (servers.media) {
-    // Deduce all attachments from state
-    // TODO(sww): skip attachments that are already uploaded/uploading
-    var attachments = this.state().forms.reduce(function (accum, form) {
-      return accum.concat(form.attachments)
-    }, [])
+  var uploadFn = null
 
-    // Build upload tasks
-    var tasks = attachments.map(function (attachment) {
-      return function (done) {
-        uploadMediaBlob(servers.media, attachment.blob, done)
-      }
-    })
-
-    // Upload all attachments
-    // TODO(sww): Handle partial failures!
-    parallel(tasks, function (err, ids) {
-      console.log('upload', err, ids)
-
-      if (err) return done(err)
-
-      // Update uploaded state of attachments
-      attachments.forEach(function (attachment, idx) {
-        set(self.attachments, attachment.name, 'uploaded', 1)
-
-        var mediaId = ids[idx]
-        set(self.attachments, attachment.name, 'mediaId', mediaId)
-      })
-      self.emit('change')
-      done(null)
-    })
+  // Upload via HTTP POST
+  if (servers.mediaUrl) {
+    uploadFn = function (blob, fin) {
+      uploadBlobHttp(servers.mediaUrl, blob, fin)
+    }
   }
+
+  // If an uploadFn was given, upload all attachments.
+  if (uploadFn) {
+    // Perform the upload
+    this.uploadAttachments(uploadFn, next())
+  }
+
+  // if (servers.observationsUrl) {
+  //   this.uploadObservations(servers.observationsUrl, next())
+  // }
 }
 
-function uploadMediaBlob (httpEndpoint, blob, done) {
-  console.log('uploading')
+XFormUploader.prototype.uploadAttachments = function (uploadFn, done) {
+  // Deduce all attachments from state
+  // TODO(sww): skip attachments that are already uploaded/uploading
+  var attachments = this.state().forms.reduce(function (accum, form) {
+    return accum.concat(form.attachments)
+  }, [])
 
+  var blobs = attachments.map(function (attachment) {
+    return attachment.blob
+  })
+
+  var self = this
+  uploadBlobs(blobs, uploadFn, function (err, ids) {
+    if (err) return done(err)
+
+    // Update uploaded state of attachments and set mediaId.
+    attachments.forEach(function (attachment, idx) {
+      setProp(self.attachments, attachment.name, 'uploaded', 1)
+
+      var mediaId = ids[idx]
+      setProp(self.attachments, attachment.name, 'mediaId', mediaId)
+    })
+
+    done(null, ids)
+  })
+}
+
+// Takes a list of blobs and an async upload function, performs the upload
+// process on the blobs, and returns the values returned by the uploading
+// mechanism.
+function uploadBlobs (blobs, uploadFn, done) {
+  // Build upload tasks
+  var tasks = blobs.map(function (blob) {
+    return function (fin) {
+      uploadFn(blob, fin)
+    }
+  })
+
+  // Upload all attachments
+  // TODO(sww): Handle partial failures!
+  parallel(tasks, done)
+}
+
+// Upload a single blob to an HTTP endpoint using a POST request.
+function uploadBlobHttp (httpEndpoint, blob, done) {
   var promise = got(httpEndpoint, {
     body: blob,
     retries: 0
@@ -121,7 +155,9 @@ function uploadMediaBlob (httpEndpoint, blob, done) {
   promise.catch(done)
 }
 
-function set (obj, prop, key, value) {
+// Set the key in the object obj[prop] to value. If the object obj[prop] doesn't
+// yet exist, create it first.
+function setProp (obj, prop, key, value) {
   if (!obj[prop]) {
     obj[prop] = {}
   }
