@@ -69,46 +69,68 @@ XFormUploader.prototype.state = function () {
   return state
 }
 
+// TODO(sww): prevent two uploads from being run at the same time
+// TODO(sww): don't try to upload the same media twice
 XFormUploader.prototype.upload = function (servers, done) {
   done = done || function () {}
 
   var self = this
-  var next = after(function (err) {
+  function onComplete (err) {
+    // TODO(sww): fire on partial/full completion, but not on full failure
     self.emit('change')
     done(err)
-  })
+  }
 
-  var mediaUploadFn = null
-  var observationsUploadFn = null
+  var unuploadedAttachments = this.getAttachmentsNotUploaded()
+  if (unuploadedAttachments.length > 0) {
+    // Upload media
+    uploadAttachments(function (err) {
+      if (err) return done(err)
+      uploadForms(onComplete)
+    })
+  } else {
+    // Upload forms
+    uploadForms(onComplete)
+  }
 
-  // Upload via HTTP POST
-  if (servers.mediaUrl) {
-    mediaUploadFn = function (blob, fin) {
-      uploadBlobHttp(servers.mediaUrl, blob, fin)
+  function uploadAttachments (attachments, fin) {
+    var mediaUploadFn = null
+
+    // Upload via HTTP POST
+    if (servers.mediaUrl) {
+      mediaUploadFn = function (blob, cb) {
+        uploadBlobHttp(servers.mediaUrl, blob, cb)
+      }
+    }
+
+    if (mediaUploadFn) {
+      self.uploadAttachments(mediaUploadFn, fin)
+    } else {
+      fin(new Error('unable to find an upload mechanism for media'))
     }
   }
 
-  // If an mediaUploadFn was given, upload all attachments.
-  if (mediaUploadFn) {
-    // Perform the upload
-    this.uploadAttachments(mediaUploadFn, next())
-  }
+  function uploadForms (fin) {
+    var observationsUploadFn = null
 
-  if (servers.observationsUrl) {
-    observationsUploadFn = function (form, fin) {
-      uploadBlobHttp(servers.observationsUrl, form, function (err, res) {
-        if (res) {
-          res = res.trim()
-        }
-        fin(err, res)
-      })
+    if (servers.observationsUrl) {
+      observationsUploadFn = function (form, fin) {
+        uploadBlobHttp(servers.observationsUrl, form, function (err, res) {
+          if (res) {
+            res = res.trim()
+          }
+          fin(err, res)
+        })
+      }
     }
-  }
 
-  // If an mediaUploadFn was given, upload all attachments.
-  if (observationsUploadFn) {
-    // Perform the upload
-    this.uploadForms(observationsUploadFn, next())
+    // If an mediaUploadFn was given, upload all attachments.
+    if (observationsUploadFn) {
+      // Perform the upload
+      self.uploadForms(observationsUploadFn, fin)
+    } else {
+      fin(new Error('unable to find an upload mechanism for observations'))
+    }
   }
 }
 
@@ -153,7 +175,7 @@ XFormUploader.prototype.uploadForms = function (uploadFn, done) {
   }
 
   // Transform forms to refer to mediaIds rather than JS references.
-  var forms = this.forms.getForms().map(function (form) {
+  var forms = this.state().forms.map(function (form) {
     var copy = cloneForm(form)
     copy.attachments = form.attachments.map(function (attachment) {
       return attachment.mediaId
@@ -173,7 +195,6 @@ XFormUploader.prototype.uploadForms = function (uploadFn, done) {
 
   // console.log('obs', observations)
 
-  var self = this
   uploadBlobs(observations, uploadFn, function (err, ids) {
     if (err) return done(err)
 
@@ -182,6 +203,15 @@ XFormUploader.prototype.uploadForms = function (uploadFn, done) {
 
     done(null)
   })
+}
+
+XFormUploader.prototype.getAttachmentsNotUploaded = function () {
+  return this.state().forms.reduce(function (accum, form) {
+    var notUploadedAttachments = form.attachments.filter(function (attachment) {
+      return !attachment.uploaded
+    })
+    return accum.concat(notUploadedAttachments)
+  }, [])
 }
 
 // Takes a list of blobs and an async upload function, performs the upload
