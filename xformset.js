@@ -31,6 +31,10 @@ XFormSet.prototype.state = function () {
   }
 }
 
+XFormSet.prototype.getForms = function () {
+  return this.forms.getForms()
+}
+
 // Traverse the entire 'form' object, looking for string values that appear to
 // end in a known file extension.
 function getAttachmentNamesFromForm (form) {
