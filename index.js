@@ -208,9 +208,6 @@ XFormUploader.prototype.uploadForms = function (uploadFn, done) {
       setProp(self.formState, idx, 'uploaded', 1)
     })
 
-    // TODO(sww): Update uploaded state of forms.
-    console.log('all done', ids)
-
     done(null)
   })
 }
