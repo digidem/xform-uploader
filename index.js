@@ -142,8 +142,9 @@ XFormUploader.prototype.upload = function (servers, done) {
 }
 
 XFormUploader.prototype.uploadAttachments = function (uploadFn, done) {
-  // Deduce all attachments from state
   // TODO(sww): skip attachments that are already uploaded/uploading
+
+  // Deduce all attachments from state
   var attachments = this.state().forms.reduce(function (accum, form) {
     return accum.concat(form.attachments)
   }, [])
@@ -169,20 +170,11 @@ XFormUploader.prototype.uploadAttachments = function (uploadFn, done) {
 }
 
 XFormUploader.prototype.uploadForms = function (uploadFn, done) {
-  // Avoids copying attachments
-  function cloneForm (form) {
-    var attachments = form.attachments
-    form.attachments = undefined
+  // TODO(sww): skip forms that are already uploaded/uploading
 
-    var copy = clone(form)
-
-    form.attachments = attachments
-
-    return copy
-  }
-
+  // Produce a copy of the forms that refer to mediaIds rather than JS
+  // references.
   var forms = this.state().forms.map(function (form, idx) {
-    // Transform forms to refer to mediaIds rather than JS references.
     var copy = cloneForm(form)
     copy.attachments = form.attachments.map(function (attachment) {
       return attachment.mediaId
@@ -221,6 +213,16 @@ XFormUploader.prototype.getAttachmentsNotUploaded = function () {
     return accum.concat(notUploadedAttachments)
   }, [])
 }
+
+// Make a deep copy of a form, but avoid copying its attachments.
+function cloneForm (form) {
+  var attachments = form.attachments
+  form.attachments = []
+  var copy = clone(form)
+  form.attachments = attachments
+  return copy
+}
+
 
 // Takes a list of blobs and an async upload function, performs the upload
 // process on the blobs, and returns the values returned by the uploading
