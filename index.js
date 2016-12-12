@@ -26,15 +26,18 @@ XFormUploader.prototype.add = function (files, done) {
 
   function add (file) {
     var cb = next()
-    var reader = new window.FileReader()
     if (file.name.endsWith('.xml')) {
       // XML form
-      var xml = reader.readAsText(file)
-      self.forms.addForm(xml, cb)
+      fileReaderAsText(file, function (err, xml) {
+        if (err) return cb(err)
+        self.forms.addForm(xml, cb)
+      })
     } else {
       // Attachment
-      var blob = reader.readAsBinaryString(file)
-      self.forms.addAttachment(file.name, blob, cb)
+      fileReaderAsBinaryString(file, function (err, blob) {
+        if (err) return cb(err)
+        self.forms.addAttachment(file.name, blob, cb)
+      })
     }
   }
 
@@ -254,6 +257,24 @@ function setProp (obj, prop, key, value) {
     obj[prop] = {}
   }
   obj[prop][key] = value
+}
+
+function fileReaderAsText (file, done) {
+  var reader = new window.FileReader()
+  reader.addEventListener('load', function (e) {
+    done(null, e.target.result)
+  })
+  reader.addEventListener('error', done)
+  reader.readAsText(file)
+}
+
+function fileReaderAsBinaryString (file, done) {
+  var reader = new window.FileReader()
+  reader.addEventListener('load', function (e) {
+    done(null, e.target.result)
+  })
+  reader.addEventListener('error', done)
+  reader.readAsBinaryString(file)
 }
 
 module.exports = XFormUploader
