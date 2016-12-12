@@ -58,10 +58,17 @@ XFormUploader.prototype.state = function () {
 
   var self = this
   state.forms.forEach(function (form, idx) {
-    Object.assign(form, self.formState[idx])
+    var data = self.formState[idx]
+    if (!data) {
+      // Default values to add
+      data = {
+        uploaded: 0
+      }
+    }
+    Object.assign(form, data)
 
     form.attachments.forEach(function (attachment) {
-      var data = self.attachmentState[attachment.name]
+      data = self.attachmentState[attachment.name]
       if (!data) {
         // Default values to add
         data = {
