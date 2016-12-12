@@ -9,7 +9,7 @@ function XFormSet () {
 XFormSet.prototype.addForm = function (xml, done) {
   done = done || function () {}
   var self = this
-  xformToJson(xml, function (err, json) {
+  xformToJson(xml, { geojson: true }, function (err, json) {
     if (err) return done(err)
     var attachmentNames = getAttachmentNamesFromForm(json)
     self.forms.addForm(json, attachmentNames)
