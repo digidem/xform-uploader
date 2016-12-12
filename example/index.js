@@ -28,7 +28,7 @@ dragDrop('#app', function (files, pos) {
         req.upload.addEventListener('progress', progress, false)
       }
     }
-    xhr(opts, done);
+    xhr(opts, done)
     function progress (ev) {
       console.log(formKey, 100 * ev.loaded / ev.total)
     }
@@ -39,8 +39,6 @@ dragDrop('#app', function (files, pos) {
     console.log(body)
   }
 })
-
-
 
 // function readFile (file, cb) {
 //   var reader = new FileReader()

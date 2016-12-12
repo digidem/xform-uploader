@@ -50,7 +50,6 @@ XFormUploader.prototype._addXml = function (file) {
     if (--self.reading === 0) self.emit('_ready')
     if (err) return console.error(err)
     xform2json()
-
   })
 }
 
