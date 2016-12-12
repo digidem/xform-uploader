@@ -191,7 +191,7 @@ XFormUploader.prototype.uploadForms = function (uploadFn, done) {
     .map(function (form) {
       return {
         type: 'observation',
-        comment: form
+        tags: form
       }
     })
     .map(JSON.stringify)
