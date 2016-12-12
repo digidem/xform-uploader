@@ -230,7 +230,6 @@ function cloneForm (form) {
   return copy
 }
 
-
 // Takes a list of blobs and an async upload function, performs the upload
 // process on the blobs, and returns the values returned by the uploading
 // mechanism.
