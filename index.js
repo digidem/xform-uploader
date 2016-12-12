@@ -9,6 +9,7 @@ var clone = require('clone')
 function XFormUploader () {
   this.forms = new XFormSet()
   this.attachmentState = {}
+  this.formState = {}
 }
 
 util.inherits(XFormUploader, events.EventEmitter)
@@ -55,7 +56,9 @@ XFormUploader.prototype.state = function () {
   var state = clone(this.forms.state())
 
   var self = this
-  state.forms.forEach(function (form) {
+  state.forms.forEach(function (form, idx) {
+    Object.assign(form, self.formState[idx])
+
     form.attachments.forEach(function (attachment) {
       var data = self.attachmentState[attachment.name]
       if (!data) {
@@ -177,8 +180,12 @@ XFormUploader.prototype.uploadForms = function (uploadFn, done) {
     return copy
   }
 
-  // Transform forms to refer to mediaIds rather than JS references.
-  var forms = this.state().forms.map(function (form) {
+  var self = this
+  var forms = this.state().forms.map(function (form, idx) {
+    // Set forms as uploaded.
+    setProp(self.formState, idx, 'uploaded', 1)
+
+    // Transform forms to refer to mediaIds rather than JS references.
     var copy = cloneForm(form)
     copy.attachments = form.attachments.map(function (attachment) {
       return attachment.mediaId
