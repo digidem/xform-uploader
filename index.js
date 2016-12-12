@@ -86,7 +86,7 @@ XFormUploader.prototype.upload = function (servers, done) {
 
   var unuploadedAttachments = this.getAttachmentsNotUploaded()
   if (unuploadedAttachments.length > 0) {
-    // Upload media
+    // Upload media, then forms
     uploadAttachments(function (err) {
       if (err) return done(err)
       uploadForms(onComplete)
@@ -96,7 +96,7 @@ XFormUploader.prototype.upload = function (servers, done) {
     uploadForms(onComplete)
   }
 
-  function uploadAttachments (attachments, fin) {
+  function uploadAttachments (fin) {
     var mediaUploadFn = null
 
     // Upload via HTTP POST
