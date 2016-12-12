@@ -180,11 +180,7 @@ XFormUploader.prototype.uploadForms = function (uploadFn, done) {
     return copy
   }
 
-  var self = this
   var forms = this.state().forms.map(function (form, idx) {
-    // Set forms as uploaded.
-    setProp(self.formState, idx, 'uploaded', 1)
-
     // Transform forms to refer to mediaIds rather than JS references.
     var copy = cloneForm(form)
     copy.attachments = form.attachments.map(function (attachment) {
@@ -203,10 +199,14 @@ XFormUploader.prototype.uploadForms = function (uploadFn, done) {
     })
     .map(JSON.stringify)
 
-  // console.log('obs', observations)
-
+  var self = this
   uploadBlobs(observations, uploadFn, function (err, ids) {
     if (err) return done(err)
+
+    // Set forms as uploaded.
+    ids.forEach(function (_, idx) {
+      setProp(self.formState, idx, 'uploaded', 1)
+    })
 
     // TODO(sww): Update uploaded state of forms.
     console.log('all done', ids)
