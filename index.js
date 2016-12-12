@@ -8,7 +8,7 @@ var clone = require('clone')
 
 function XFormUploader () {
   this.forms = new XFormSet()
-  this.attachments = {}
+  this.attachmentState = {}
 }
 
 util.inherits(XFormUploader, events.EventEmitter)
@@ -57,7 +57,7 @@ XFormUploader.prototype.state = function () {
   var self = this
   state.forms.forEach(function (form) {
     form.attachments.forEach(function (attachment) {
-      var data = self.attachments[attachment.name]
+      var data = self.attachmentState[attachment.name]
       if (!data) {
         // Default values to add
         data = {
@@ -154,10 +154,10 @@ XFormUploader.prototype.uploadAttachments = function (uploadFn, done) {
 
     // Update uploaded state of attachments and set mediaId.
     attachments.forEach(function (attachment, idx) {
-      setProp(self.attachments, attachment.name, 'uploaded', 1)
+      setProp(self.attachmentState, attachment.name, 'uploaded', 1)
 
       var mediaId = ids[idx]
-      setProp(self.attachments, attachment.name, 'mediaId', mediaId)
+      setProp(self.attachmentState, attachment.name, 'mediaId', mediaId)
     })
 
     done(null, ids)
