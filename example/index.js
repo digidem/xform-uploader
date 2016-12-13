@@ -9,7 +9,7 @@ dragDrop('#app', function (files, pos) {
     var dirname = path.dirname(file.fullPath)
     var extname = path.extname(file.name)
     var filename = extname === '.xml' ? 'xml_submission_file' : file.name
-    forms[dirname] = forms[dirname] || new FormData()
+    forms[dirname] = forms[dirname] || new window.FormData()
     forms[dirname].append(filename, file, filename)
     console.log(file.name, file.type)
   })
@@ -22,7 +22,7 @@ dragDrop('#app', function (files, pos) {
       body: formData,
       headers: {
         'X-OpenRosa-Version': '1.0',
-        'Authorization': 'Basic ' + btoa('gmaclennan:6cad3fc4872c592653ba8e8090a2d0e4493049dd')
+        'Authorization': 'Basic ' + window.btoa('gmaclennan:6cad3fc4872c592653ba8e8090a2d0e4493049dd')
       },
       beforeSend: function (req) {
         req.upload.addEventListener('progress', progress, false)
