@@ -54,8 +54,8 @@ uploader.add([
 uploader.on('change', function () { console.log(uploader.state()) })
 
 uploader.upload({
-  observationUpload: 'http://localhost:4001/obs/create',
-  mediaUpload: 'http://localhost:4002/media/jpg'
+  observationsUrl: 'http://localhost:4001/obs/create',
+  mediaUrl: 'http://localhost:4002/media/jpg'
 })
 ```
 
