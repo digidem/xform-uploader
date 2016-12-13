@@ -140,7 +140,7 @@ XFormUploader.prototype.upload = function (servers, done) {
       }
     }
 
-    // If an mediaUploadFn was given, upload all attachments.
+    // If an observationsUploadFn was given, upload all forms.
     if (observationsUploadFn) {
       // Perform the upload
       self.uploadForms(observationsUploadFn, fin)
