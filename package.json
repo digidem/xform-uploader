@@ -2,7 +2,7 @@
   "name": "xform-uploader",
   "description": "Parse an xform and attachments and upload to an odk-aggregate server or osm-p2p + hyperdrive.",
   "author": "Stephen Whitmore <sww@eight45.net>",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "repository": {
     "url": "git://github.com/noffle/xform-uploader.git"
   },
