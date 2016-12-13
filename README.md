@@ -28,18 +28,13 @@ uploader.add([
       attachments: [
         {
           filename: 'originalFilename.jpg',
-          mediaId: '1231421531', // not set on attachments until after upload
+          mediaId: '1231421531.jpg', // not set on attachments until after upload
           blob: attachment1,
           uploaded: 1
         }, {
           filename: 'originalFilename2.jpg',
           mediaId: null,
           blob: attachment2,
-          uploaded: 0
-        }, {
-          filename: 'originalFilename3.jpg',
-          mediaId: null,
-          blob: null, // we haven't attached the file yet, but we know there should be one from parsing the form XML
           uploaded: 0
         }
       ]
@@ -59,8 +54,8 @@ uploader.add([
 uploader.on('change', function () { console.log(uploader.state()) })
 
 uploader.upload({
-  observationUpload: 'http://localhost:4001/observations/add',
-  mediaUpload: 'http://localhost:4002/file/add'
+  observationUpload: 'http://localhost:4001/obs/create',
+  mediaUpload: 'http://localhost:4002/media/jpg'
 })
 ```
 
@@ -96,11 +91,6 @@ Synchronously return the instantaneous state of the Uploader as an object. It wi
           mediaId: null,
           blob: attachment2,
           uploaded: 0
-        }, {
-          filename: 'originalFilename3.jpg',
-          mediaId: null,
-          blob: null, // we haven't attached the file yet, but we know there should be one from parsing the form XML
-          uploaded: 0
         }
       ]
     }
@@ -124,7 +114,10 @@ This event is emitted whenever the public-facing state of the Uploader has chang
 
 Upload the forms and their attachments to various servers.
 
-TODO(sww): document this more clearly, and/or break up into more orthogonal API calls.
+`servers` is an object. Currently the following keys are accepted:
+
+- `observationsUrl`: an HTTP URL of a POST endpoint to receive the osm observation data that each form represents.
+- `mediaUrl`: an HTTP URL of a POST endpoint to receive the media data that each attachment represents.
 
 ## Inner Modules
 
