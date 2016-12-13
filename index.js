@@ -1,3 +1,4 @@
+var path = require('path')
 var events = require('events')
 var util = require('util')
 var XFormSet = require('./xformset')
@@ -168,7 +169,8 @@ XFormUploader.prototype.uploadAttachments = function (uploadFn, done) {
     attachments.forEach(function (attachment, idx) {
       setProp(self.attachmentState, attachment.name, 'uploaded', 1)
 
-      var mediaId = ids[idx]
+      // Store the mediaId as 'mediaId.<original-extension>'
+      var mediaId = ids[idx] + path.extname(attachment.name)
       setProp(self.attachmentState, attachment.name, 'mediaId', mediaId)
     })
 
