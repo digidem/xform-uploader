@@ -260,7 +260,7 @@ function uploadBlobHttp (httpEndpoint, blob, done) {
 
   promise.then(function (res) {
     done(null, res.body)
-  })
+  }, done)
 
   promise.catch(done)
 }
