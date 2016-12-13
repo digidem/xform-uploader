@@ -27,6 +27,8 @@ XFormUploader.prototype.add = function (files, done) {
     finished(err)
   })
 
+  files.forEach(add)
+
   function add (file) {
     var cb = next()
     if (file.name.endsWith('.xml')) {
@@ -43,8 +45,6 @@ XFormUploader.prototype.add = function (files, done) {
       })
     }
   }
-
-  files.forEach(add)
 
   function finished (err) {
     if (err) return done(err)
@@ -111,7 +111,7 @@ XFormUploader.prototype.upload = function (servers, done) {
   function uploadAttachments (fin) {
     var mediaUploadFn = null
 
-    // Upload via HTTP POST
+    // HTTP POST upload to a ddem-observation-server.
     if (servers.mediaUrl) {
       mediaUploadFn = function (blob, cb) {
         uploadBlobHttp(servers.mediaUrl, blob, cb)
@@ -128,6 +128,7 @@ XFormUploader.prototype.upload = function (servers, done) {
   function uploadForms (fin) {
     var observationsUploadFn = null
 
+    // HTTP POST upload to a ddem-observation-server.
     if (servers.observationsUrl) {
       observationsUploadFn = function (form, fin) {
         uploadBlobHttp(servers.observationsUrl, form, function (err, res) {
