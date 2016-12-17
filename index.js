@@ -39,9 +39,9 @@ XFormUploader.prototype.add = function (files, done) {
       })
     } else {
       // Attachment
-      SimpleFileReader.readAsBinaryString(file, function (err, blob) {
+      SimpleFileReader.readAsArrayBuffer(file, function (err, blob) {
         if (err) return cb(err)
-        self.forms.addAttachment(file.name, blob, cb)
+        self.forms.addAttachment(file.name, Buffer.from(blob), cb)
       })
     }
   }
