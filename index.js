@@ -79,6 +79,17 @@ XFormUploader.prototype.state = function () {
       }
       Object.assign(attachment, data)
     })
+
+    form.missingAttachments = Object.values(state.missingAttachments)
+      .map(function (name) {
+        return self.forms.forms.missingAttachments[name]
+      })
+      .filter(function (a) {
+        return a.form.data.id === form.data.id
+      })
+      .map(function (a) {
+        return a.name
+      })
   })
 
   return state
