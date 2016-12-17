@@ -5,10 +5,11 @@ function FormSet () {
 }
 
 // Add an opaque form and attachment names.
-FormSet.prototype.addForm = function (formData, pendingAttachments) {
+FormSet.prototype.addForm = function (name, formData, pendingAttachments) {
   pendingAttachments = pendingAttachments || []
 
   var form = {
+    name: name,
     data: formData,
     attachments: []
   }
