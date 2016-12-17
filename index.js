@@ -35,7 +35,7 @@ XFormUploader.prototype.add = function (files, done) {
       // XML form
       SimpleFileReader.readAsText(file, function (err, xml) {
         if (err) return cb(err)
-        self.forms.addForm(xml, cb)
+        self.forms.addForm(file.name, xml, cb)
       })
     } else {
       // Attachment
