@@ -39,9 +39,9 @@ XFormUploader.prototype.add = function (files, done) {
       })
     } else {
       // Attachment
-      SimpleFileReader.readAsBinaryString(file, function (err, blob) {
+      SimpleFileReader.readAsArrayBuffer(file, function (err, blob) {
         if (err) return cb(err)
-        self.forms.addAttachment(file.name, blob, cb)
+        self.forms.addAttachment(file.name, Buffer.from(blob), cb)
       })
     }
   }
@@ -114,7 +114,7 @@ XFormUploader.prototype.upload = function (servers, done) {
     // HTTP POST upload to a ddem-observation-server.
     if (servers.mediaUrl) {
       mediaUploadFn = function (blob, cb) {
-        uploadBlobHttp(servers.mediaUrl, blob, cb)
+        uploadBlobHttp(servers.mediaUrl, blob, null, cb)
       }
     }
 
@@ -131,7 +131,7 @@ XFormUploader.prototype.upload = function (servers, done) {
     // HTTP POST upload to a ddem-observation-server.
     if (servers.observationsUrl) {
       observationsUploadFn = function (form, fin) {
-        uploadBlobHttp(servers.observationsUrl, form, function (err, res) {
+        uploadBlobHttp(servers.observationsUrl, form, 'application/json', function (err, res) {
           if (res) {
             res = res.trim()
           }
@@ -250,13 +250,15 @@ function uploadBlobs (blobs, uploadFn, done) {
 }
 
 // Upload a single blob to an HTTP endpoint using a POST request.
-function uploadBlobHttp (httpEndpoint, blob, done) {
+function uploadBlobHttp (httpEndpoint, blob, contentType, done) {
+  var headers = {}
+  if (contentType) {
+    headers['Content-Type'] = contentType
+  }
   var promise = got(httpEndpoint, {
     body: blob,
     retries: 0,
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: headers
   })
 
   promise.then(function (res) {
