@@ -2,7 +2,7 @@ var events = require('events')
 var util = require('util')
 var XFormSet = require('./xformset')
 var after = require('after-all')
-var got = require('got')
+var d3 = require('d3-request')
 var parallel = require('run-parallel')
 var clone = require('clone')
 var SimpleFileReader = require('./file-reader')
@@ -124,7 +124,11 @@ XFormUploader.prototype.upload = function (servers, done) {
     // HTTP POST upload to a ddem-observation-server.
     if (servers.mediaUrl) {
       mediaUploadFn = function (blob, cb) {
-        uploadBlobHttp(servers.mediaUrl, blob, null, cb)
+        return d3.request(servers.mediaUrl)
+          // map response to text (d3.request returns the xhr instance by default)
+          .mimeType('text/plain')
+          .response(mapTextResponse)
+          .post(blob, cb)
       }
     }
 
@@ -140,13 +144,12 @@ XFormUploader.prototype.upload = function (servers, done) {
 
     // HTTP POST upload to a ddem-observation-server.
     if (servers.observationsUrl) {
-      observationsUploadFn = function (form, fin) {
-        uploadBlobHttp(servers.observationsUrl, form, 'application/json', function (err, res) {
-          if (res) {
-            res = res.trim()
-          }
-          fin(err, res)
-        })
+      observationsUploadFn = function (form, cb) {
+        return d3.request(servers.observationsUrl)
+          .header('Content-Type', 'application/json')
+          .mimeType('text/plain')
+          .response(mapTextResponse)
+          .post(form, cb)
       }
     }
 
@@ -257,23 +260,8 @@ function uploadBlobs (blobs, uploadFn, done) {
   parallel(tasks, done)
 }
 
-// Upload a single blob to an HTTP endpoint using a POST request.
-function uploadBlobHttp (httpEndpoint, blob, contentType, done) {
-  var headers = {}
-  if (contentType) {
-    headers['Content-Type'] = contentType
-  }
-  var promise = got(httpEndpoint, {
-    body: blob,
-    retries: 0,
-    headers: headers
-  })
-
-  promise.then(function (res) {
-    done(null, res.body)
-  }, done)
-
-  promise.catch(done)
+function mapTextResponse (xhr) {
+  return typeof xhr.responseText === 'string' && xhr.responseText.trim()
 }
 
 // Set the key in the object obj[prop] to value. If the object obj[prop] doesn't
