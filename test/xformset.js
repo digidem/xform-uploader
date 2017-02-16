@@ -13,7 +13,7 @@ test('missing attachments', function (t) {
     </form>
   `
 
-  set.addForm(xml, ready)
+  set.addForm('foo', xml, ready)
 
   function ready () {
     var state = set.state()
@@ -43,7 +43,7 @@ test('orphaned attachments', function (t) {
     </form>
   `
 
-  set.addForm(xml, ready)
+  set.addForm('foo', xml, ready)
 
   function ready () {
     var state = set.state()
@@ -70,7 +70,7 @@ test('attachment name matching', function (t) {
       </doodads>
     </thing>
   `
-  set.addForm(form, ready)
+  set.addForm('foo', form, ready)
 
   function ready () {
     var state = set.state()

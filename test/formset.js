@@ -4,16 +4,15 @@ var FormSet = require('../formset')
 test('missing attachments', function (t) {
   var set = new FormSet()
 
-  set.addForm({
+  set.addForm('foo', {
     id: 'foo',
     attachments: [
       'pic.jpg',
       'foo.png'
     ]
-  }, [
-    'pic.jpg',
-    'foo.png'
-  ])
+  }, {
+    pendingAttachments: ['pic.jpg', 'foo.png']
+  })
 
   t.deepEqual(set.getMissingAttachmentNames(), ['pic.jpg', 'foo.png'])
   t.equal(set.getOrphanAttachmentNames().length, 0)
@@ -36,12 +35,13 @@ test('orphaned attachments', function (t) {
     ]
   }
 
-  set.addForm(form, ['pic.jpg', 'foo.png'])
+  set.addForm('foo', form, {pendingAttachments: ['pic.jpg', 'foo.png']})
 
   t.deepEqual(set.getMissingAttachmentNames(), ['pic.jpg'])
   t.deepEqual(set.getOrphanAttachmentNames(), [])
   t.equal(set.forms.length, 1)
   t.deepEqual(set.forms[0], {
+    name: 'foo',
     data: form,
     attachments: [
       {
@@ -66,7 +66,7 @@ test('full proper form set (attach, form, attach)', function (t) {
       'foo.png'
     ]
   }
-  set.addForm(form, form.media)
+  set.addForm('foo', form, {pendingAttachments: form.media})
 
   set.addAttachment('pic.jpg', new Buffer('image image image'))
 
