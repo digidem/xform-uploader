@@ -5,14 +5,17 @@ function FormSet () {
 }
 
 // Add an opaque form and attachment names.
-FormSet.prototype.addForm = function (name, formData, pendingAttachments) {
-  pendingAttachments = pendingAttachments || []
+FormSet.prototype.addForm = function (name, formData, opts) {
+  opts = opts || {}
+  var pendingAttachments = opts.pendingAttachments || []
 
   var form = {
     name: name,
     data: formData,
     attachments: []
   }
+
+  if (opts.xml) form.xml = opts.xml
 
   // Filter out orphan attachments that this form references, adding them to
   // the current form.
