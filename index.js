@@ -4,6 +4,7 @@ var XFormSet = require('./xformset')
 var after = require('after-all')
 var d3 = require('d3-request')
 var parallel = require('run-parallel')
+var series = require('run-series')
 var clone = require('clone')
 var SimpleFileReader = require('./file-reader')
 
@@ -92,6 +93,66 @@ XFormUploader.prototype.state = function () {
   })
 
   return state
+}
+
+/**
+ * Submits forms to an ODK Aggregate server using the Javarosa FormSubmissionAPI spec:
+ * https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI
+ *
+ * For HTTP Basic Authentication pass `opts.user` and `opts.password`
+ *
+ * Optionally pass additional headers with `opts.headers`
+ *
+ * @param {String}   url  Upload URL, should be an OpenRosa compliant server
+ * @param {Object}   opts
+ * @param {String}   opts.user Username for HTTP Basic Auth
+ * @param {String}   opts.password Password for HTTP Basic Auth
+ * @param {Object}   opts.headers Any optional headers to send to the server `{header: value}`
+ * @param {Function} done Callback
+ */
+XFormUploader.prototype.submit = function (url, opts, done) {
+  if (arguments.length === 2 && typeof opts === 'function') {
+    done = opts
+    opts = {}
+  }
+  opts = opts || {}
+  opts.headers = opts.headers || {}
+  var self = this
+
+  // Create an array of functions that will upload each form
+  var uploadTasks = this.state().forms.map(function (form, idx) {
+    // Create a form encoded as 'multipart/form-data' and append the form XML
+    // and attachments as specified in the Javarosa FormSubmissionAPI spec:
+    // https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI
+    var formData = new window.FormData()
+    formData.append('xml_submission_file', new window.Blob([form.xml], {type: 'text/xml'}))
+    !(form.attachments || []).forEach(function (attachment) {
+      formData.append(attachment.filename, attachment.blob)
+    })
+
+    // Set the upload progress of the form on the state
+    function onProgress (pe) {
+      if (pe.lengthConputable) var progress = pe.loaded / pe.total
+      setProp(self.formState, idx, 'uploaded', progress)
+      self.emit('change')
+    }
+
+    // Return a function that will post the form to the url
+    return function (cb) {
+      var request = d3.request(url)
+        .on('progress', onProgress)
+        .header('X-OpenRosa-Version', '1.0')
+        .user(opts.user || null)
+        .password(opts.password || null)
+      for (var header in opts.headers) {
+        request.header(header, opts.headers[header])
+      }
+      request.send(formData, cb)
+    }
+  })
+
+  // Upload each multipart-form in series
+  series(uploadTasks, done)
 }
 
 // TODO(sww): prevent two uploads from being run at the same time
