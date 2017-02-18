@@ -140,7 +140,8 @@ XFormUploader.prototype.submit = function (url, opts, done) {
 
     // Return a function that will post the form to the url
     return function (cb) {
-      var request = d3.request(url)
+      var request = d3.text(url)
+        .mimeType('text/xml')
         .on('progress', onProgress)
         .header('X-OpenRosa-Version', '1.0')
         .user(opts.user || null)
@@ -148,7 +149,7 @@ XFormUploader.prototype.submit = function (url, opts, done) {
       for (var header in opts.headers) {
         request.header(header, opts.headers[header])
       }
-      request.send(formData, cb)
+      request.post(formData, cb)
     }
   })
 
