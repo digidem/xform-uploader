@@ -39,10 +39,7 @@ XFormUploader.prototype.add = function (files, done) {
       })
     } else {
       // Attachment
-      SimpleFileReader.readAsArrayBuffer(file, function (err, blob) {
-        if (err) return cb(err)
-        self.forms.addAttachment(file.name, Buffer.from(blob), cb)
-      })
+      self.forms.addAttachment(file.name, file, cb)
     }
   }
 
@@ -55,10 +52,11 @@ XFormUploader.prototype.add = function (files, done) {
 
 XFormUploader.prototype.state = function () {
   // Transform state by adding relevant upload/etc data.
-  var state = clone(this.forms.state())
+  var state = this.forms.state()
 
   var self = this
-  state.forms.forEach(function (form, idx) {
+  const forms = state.forms.map(function (form, idx) {
+    form = cloneForm(form)
     var data = self.formState[idx]
     if (!data) {
       // Default values to add
@@ -91,9 +89,11 @@ XFormUploader.prototype.state = function () {
       .map(function (a) {
         return a.name
       })
+
+    return form
   })
 
-  return state
+  return Object.assign({}, state, {forms: forms})
 }
 
 /**
@@ -127,7 +127,7 @@ XFormUploader.prototype.submit = function (url, opts, done) {
     // https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI
     var formData = new window.FormData()
     formData.append('xml_submission_file', new window.Blob([form.xml], {type: 'text/xml'}))
-    !(form.attachments || []).forEach(function (attachment) {
+    ;(form.attachments || []).forEach(function (attachment) {
       formData.append(attachment.filename, attachment.blob)
     })
 
@@ -159,7 +159,7 @@ XFormUploader.prototype.submit = function (url, opts, done) {
 
 // TODO(sww): prevent two uploads from being run at the same time
 // TODO(sww): don't try to upload the same media twice
-XFormUploader.prototype.upload = function (servers, done) {
+XFormUploader.prototype.upload = function (formUploadFn, mediaUploadFn, done) {
   done = done || function () {}
 
   var self = this
@@ -169,60 +169,15 @@ XFormUploader.prototype.upload = function (servers, done) {
     done(err)
   }
 
-  var unuploadedAttachments = this.getAttachmentsNotUploaded()
-  if (unuploadedAttachments.length > 0) {
+  if (this.getAttachmentsNotUploaded().length > 0) {
     // Upload media, then forms
-    uploadAttachments(function (err) {
+    self.uploadAttachments(mediaUploadFn, function (err) {
       if (err) return done(err)
-      uploadForms(onComplete)
+      self.uploadForms(formUploadFn, onComplete)
     })
   } else {
     // Upload forms
-    uploadForms(onComplete)
-  }
-
-  function uploadAttachments (fin) {
-    var mediaUploadFn = null
-
-    // HTTP POST upload to a ddem-observation-server.
-    if (servers.mediaUrl) {
-      mediaUploadFn = function (blob, cb) {
-        return d3.request(servers.mediaUrl)
-          // map response to text (d3.request returns the xhr instance by default)
-          .mimeType('text/plain')
-          .response(mapTextResponse)
-          .post(blob, cb)
-      }
-    }
-
-    if (mediaUploadFn) {
-      self.uploadAttachments(mediaUploadFn, fin)
-    } else {
-      fin(new Error('unable to find an upload mechanism for media'))
-    }
-  }
-
-  function uploadForms (fin) {
-    var observationsUploadFn = null
-
-    // HTTP POST upload to a ddem-observation-server.
-    if (servers.observationsUrl) {
-      observationsUploadFn = function (form, cb) {
-        return d3.request(servers.observationsUrl)
-          .header('Content-Type', 'application/json')
-          .mimeType('text/plain')
-          .response(mapTextResponse)
-          .post(form, cb)
-      }
-    }
-
-    // If an mediaUploadFn was given, upload all attachments.
-    if (observationsUploadFn) {
-      // Perform the upload
-      self.uploadForms(observationsUploadFn, fin)
-    } else {
-      fin(new Error('unable to find an upload mechanism for observations'))
-    }
+    self.uploadForms(formUploadFn, onComplete)
   }
 }
 
@@ -303,7 +258,7 @@ function cloneForm (form) {
   var attachments = form.attachments
   form.attachments = []
   var copy = clone(form)
-  form.attachments = attachments
+  form.attachments = copy.attachments = attachments
   return copy
 }
 
